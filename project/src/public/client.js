@@ -5,7 +5,6 @@ let store = {
     rovers: ["Curiosity", "Opportunity", "Spirit"],
 };
 
-// add our markup to the page
 const root = document.getElementById("root");
 
 const updateStore = (store, newState) => {
@@ -27,12 +26,12 @@ const render = async (root, state) => {
 
 // create content
 const App = (state) => {
-    let {roverImages, roverInformation, chosenRover} = state;
+    let {roverImages, roverInformation, chosenRover, rovers} = state;
 
     return `
         <main>
             <nav>
-              ${Navigation(store.rovers)} 
+              ${Navigation(rovers)} 
             </nav>
             <section>
                 <div class="content">
@@ -50,7 +49,6 @@ window.addEventListener("load", () => {
 
 // ------------------------------------------------------  COMPONENTS
 
-// Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
 const Navigation = (rovers) => {
     const navigationItems = rovers.map(
         (rover) => `<button data-load="${rover}">${rover}</button>`
@@ -58,7 +56,6 @@ const Navigation = (rovers) => {
     return navigationItems.join('');
 };
 
-// Example of a pure function that renders infomation requested from the backend
 const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
     const hasRover = chosenRover !== roverInformation?.name;
 
@@ -73,9 +70,9 @@ const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
                 ${roverImages.slice(0, 5).map((image, index) => displayRoverImage(image, index))}            
             </div>
                 <div class="slider-nav">
-                    ${[1, 2, 3, 4, 5,].map(number => {
-                        return `<a href="#slide-${number}">${number}</a>`;
-                    }).join('')}
+                ${[1, 2, 3, 4, 5,].map(number => {
+                    return `<a href="#slide-${number}">${number}</a>`;
+                }).join('')}
             </div>
         </div>
         <div class="card">
@@ -105,7 +102,7 @@ const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
 
 function displayRoverImage({src, date}, index) {
     return `
-        <div id="slide-${index+1}">
+        <div id="slide-${index + 1}">
             <figure>
               <img src="${src}" />
               <figcaption>${date}</figcaption>
@@ -129,6 +126,6 @@ const getRoverInformation = (state) => {
                 };
             });
             const roverInformation = rover.photos.find(Boolean).rover;
-            updateStore(store, {roverImages, roverInformation});
+            updateStore(store, { roverImages, roverInformation });
         });
 };

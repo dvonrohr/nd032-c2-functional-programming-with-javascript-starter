@@ -176,7 +176,6 @@ nav button {
 
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
-  /* use mobile */
   .card-content .dl-section {
     display: grid;
   }
