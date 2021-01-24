@@ -30,18 +30,16 @@ const App = (state) => {
     let {roverImages, roverInformation, chosenRover} = state;
 
     return `
-        <header></header>
         <main>
             <nav>
               ${Navigation(store.rovers)} 
             </nav>
             <section>
-                <div>
+                <div class="content">
                     ${displayRoverInfo(roverImages, roverInformation, chosenRover)}
                 </div>
             </section>
         </main>
-        <footer></footer>
     `;
 };
 
@@ -70,26 +68,44 @@ const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
     }
 
     return `
-        <h2>${roverInformation.name}</h2>
         <div class="slider">
             <div class="slides">
                 ${roverImages.slice(0, 5).map((image, index) => displayRoverImage(image, index))}            
             </div>
+                <div class="slider-nav">
+                    ${[1, 2, 3, 4, 5,].map(number => {
+                        return `<a href="#slide-${number}">${number}</a>`;
+                    }).join('')}
+            </div>
         </div>
-        <dl>
-          <dt>Landing date</dt>
-          <dd>${roverInformation.landing_date}</dd>
-          <dt>Launch date</dt>
-          <dd>${roverInformation.launch_date}</dd>
-          <dt>Status</dt>
-          <dd>${roverInformation.status}</dd>
-        </dl>
+        <div class="card">
+            <div class="card-heading">
+                <h2>${roverInformation.name}</h2>
+                <p>Details about the rover.</p>
+            </div>
+            <div class="card-content">
+                <dl>
+                    <div class="dl-section">
+                        <dt>Landing date</dt>
+                        <dd>${roverInformation.landing_date}</dd>
+                    </div>
+                    <div class="dl-section">
+                        <dt>Launch date</dt>
+                        <dd>${roverInformation.launch_date}</dd>                    
+                    </div>
+                    <div class="dl-section">
+                        <dt>Status</dt>
+                        <dd>${roverInformation.status}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
     `;
 }
 
 function displayRoverImage({src, date}, index) {
     return `
-        <div class="slide-${index}">
+        <div id="slide-${index+1}">
             <figure>
               <img src="${src}" />
               <figcaption>${date}</figcaption>
@@ -100,7 +116,6 @@ function displayRoverImage({src, date}, index) {
 
 // ------------------------------------------------------  API CALLS
 
-// Example API call
 const getRoverInformation = (state) => {
     let {chosenRover} = state;
 
