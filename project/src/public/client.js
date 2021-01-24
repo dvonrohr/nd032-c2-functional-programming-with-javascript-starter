@@ -10,7 +10,6 @@ const root = document.getElementById("root");
 
 const updateStore = (store, newState) => {
     store = Object.assign(store, newState);
-    console.log('state', newState);
     render(root, store);
 };
 
@@ -78,7 +77,6 @@ const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
     if (!roverInformation?.name || chosenRover !== roverInformation?.name) {
         getRoverInformation(store);
     }
-    console.log(roverImages.slice(0, 1));
 
     return `
         <h2>${roverInformation.name}</h2>
