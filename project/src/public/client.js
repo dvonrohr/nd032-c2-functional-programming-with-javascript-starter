@@ -17,12 +17,11 @@ const render = async (root, state) => {
     root.innerHTML = App(state);
 
     document.querySelectorAll("[data-load]").forEach((button) => {
-        button.addEventListener("click", (event) => {
+        button.addEventListener("click", (function (event) {
             event.preventDefault();
-
-            const chosenRover = event.target.dataset.load;
-            updateStore(state, { chosenRover })
-        });
+            const chosenRover = event.target.dataset?.load;
+            if (chosenRover) updateStore(state, {chosenRover});
+        }));
     });
 };
 
@@ -40,15 +39,6 @@ const App = (state) => {
                 <div>
                     ${displayRoverInfo(roverImages, roverInformation, chosenRover)}
                 </div>
-                <p>Here is an example section.</p>
-                <p>
-                    One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of
-                    the most popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video.
-                    This endpoint structures the APOD imagery and associated metadata so that it can be repurposed for other
-                    applications. In addition, if the concept_tags parameter is set to True, then keywords derived from the image
-                    explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
-                    but generally help with discoverability of relevant imagery.
-                </p>
             </section>
         </main>
         <footer></footer>
@@ -64,9 +54,10 @@ window.addEventListener("load", () => {
 
 // Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
 const Navigation = (rovers) => {
-    return rovers.map(
+    const navigationItems = rovers.map(
         (rover) => `<button data-load="${rover}">${rover}</button>`
     );
+    return navigationItems.join('');
 };
 
 // Example of a pure function that renders infomation requested from the backend
@@ -80,8 +71,10 @@ const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
 
     return `
         <h2>${roverInformation.name}</h2>
-        <div>
-            ${roverImages.slice(0,5).map(image => displayRoverImage(image))}
+        <div class="slider">
+            <div class="slides">
+                ${roverImages.slice(0, 5).map((image, index) => displayRoverImage(image, index))}            
+            </div>
         </div>
         <dl>
           <dt>Landing date</dt>
@@ -94,12 +87,14 @@ const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
     `;
 }
 
-function displayRoverImage({src, date}) {
+function displayRoverImage({src, date}, index) {
     return `
-        <figure>
-          <img src="${src}" />
-          <figcaption>${date}</figcaption>
-        </figure>
+        <div class="slide-${index}">
+            <figure>
+              <img src="${src}" />
+              <figcaption>${date}</figcaption>
+            </figure>
+        </div>
     `;
 }
 
@@ -107,7 +102,7 @@ function displayRoverImage({src, date}) {
 
 // Example API call
 const getRoverInformation = (state) => {
-    let { chosenRover } = state;
+    let {chosenRover} = state;
 
     fetch(`http://localhost:3000/rover/${chosenRover}`)
         .then((res) => res.json())
