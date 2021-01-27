@@ -1,41 +1,34 @@
-let store = {
+let store = Immutable.Map({
     chosenRover: 'Curiosity',
-    roverImages: [],
-    roverInformation: [],
-    rovers: ["Curiosity", "Opportunity", "Spirit"],
-};
+    roverImages: Immutable.List([]),
+    roverInformation: Immutable.Map({}),
+    rovers: Immutable.List(["Curiosity", "Opportunity", "Spirit"]),
+});
 
 const root = document.getElementById("root");
 
-const updateStore = (store, newState) => {
-    store = Object.assign(store, newState);
-    render(root, store);
+const updateStore = (store, state) => {
+    const newState = store.merge(state);
+    render(root, newState);
 };
 
 const render = async (root, state) => {
     root.innerHTML = App(state);
-
-    document.querySelectorAll("[data-load]").forEach((button) => {
-        button.addEventListener("click", (function (event) {
-            event.preventDefault();
-            const chosenRover = event.target.dataset?.load;
-            if (chosenRover) updateStore(state, {chosenRover});
-        }));
-    });
 };
 
 // create content
 const App = (state) => {
-    let {roverImages, roverInformation, chosenRover, rovers} = state;
+    const navigationRenderer = Navigation(state);
+    const roverRenderer = DisplayRoverInfo(state);
 
     return `
         <main>
             <nav>
-              ${Navigation(rovers)} 
+              ${navigationRenderer()} 
             </nav>
             <section>
                 <div class="content">
-                    ${displayRoverInfo(roverImages, roverInformation, chosenRover)}
+                    ${roverRenderer()}
                 </div>
             </section>
         </main>
@@ -49,63 +42,92 @@ window.addEventListener("load", () => {
 
 // ------------------------------------------------------  COMPONENTS
 
-const Navigation = (rovers) => {
-    const navigationItems = rovers.map(
-        (rover) => `<button data-load="${rover}">${rover}</button>`
-    );
-    return navigationItems.join('');
+const Navigation = (state) => {
+    const chosenRover = state.get('chosenRover');
+
+    document.body.addEventListener('click', (event) => {
+        event.preventDefault();
+        const rover = event.target.dataset?.load;
+        if (rover !== chosenRover) {
+            if (chosenRover) updateStore(state, {chosenRover: rover});
+        }
+    });
+
+    return () => {
+        return state.get('rovers').map(rover => {
+            return `<button data-load="${rover}">${rover}</button>`;
+        }).join('');
+    }
 };
 
-const displayRoverInfo = (roverImages, roverInformation, chosenRover) => {
-    const hasRover = chosenRover !== roverInformation?.name;
+const DisplayRoverInfo = (state) => {
+    const roverImages = state.get('roverImages');
+    const roverInformation = state.get('roverInformation');
+    const chosenRover = state.get('chosenRover');
 
-    // if state has not current rover informations, fetch them
-    if (!roverInformation?.name || chosenRover !== roverInformation?.name) {
-        getRoverInformation(store);
-    }
+    return () => {
+        // if state has not current rover informations, fetch them
+        if (!roverInformation.get('name') || chosenRover !== roverInformation.get('name')) {
+            getRoverInformation(store);
+        }
 
-    return `
-        <div class="slider">
-            <div class="slides">
-                ${roverImages.slice(0, 5).map((image, index) => displayRoverImage(image, index))}            
-            </div>
-                <div class="slider-nav">
-                ${[1, 2, 3, 4, 5,].map(number => {
-                    return `<a href="#slide-${number}">${number}</a>`;
-                }).join('')}
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-heading">
-                <h2>${roverInformation.name}</h2>
-                <p>Details about the rover.</p>
-            </div>
-            <div class="card-content">
-                <dl>
-                    <div class="dl-section">
-                        <dt>Landing date</dt>
-                        <dd>${roverInformation.landing_date}</dd>
-                    </div>
-                    <div class="dl-section">
-                        <dt>Launch date</dt>
-                        <dd>${roverInformation.launch_date}</dd>                    
-                    </div>
-                    <div class="dl-section">
-                        <dt>Status</dt>
-                        <dd>${roverInformation.status}</dd>
-                    </div>
-                </dl>
+        return `
+            <div>
+                ${Slider(5, roverImages)()}
+                <div class="card">
+                    <div class="card-heading">
+                    <h2>${roverInformation.get('name')}</h2>
+                    <p>Details about the rover.</p>
+                </div>
+                <div class="card-content">
+                    <dl>
+                        <div class="dl-section">
+                            <dt>Landing date</dt>
+                            <dd>${roverInformation.get('landing_date')}</dd>
+                        </div>
+                        <div class="dl-section">
+                            <dt>Launch date</dt>
+                            <dd>${roverInformation.get('launch_date')}</dd>                    
+                        </div>
+                        <div class="dl-section">
+                            <dt>Status</dt>
+                            <dd>${roverInformation.get('status')}</dd>
+                        </div>
+                    </dl>
+                </div>
             </div>
         </div>
     `;
+    }
 }
 
-function displayRoverImage({src, date}, index) {
+function Slider(roverImagesLimit, roverImages) {
+    const images = roverImages.slice(0, roverImagesLimit);
+    const imageLinks = new Array(roverImagesLimit);
+
+    return function() {
+        const imgStructure = images.map((image, index) => DisplayRoverImage(image, index));
+        const imgLinks = imageLinks.map(number => `<a href="#slide-${number}">${number}</a>`);
+
+        return `
+        <div class="slider">
+            <div class="slides">
+                ${imgStructure.join('')}
+            </div>
+                <div class="slider-nav">
+                ${imgLinks.join('')}
+            </div>
+        </div>
+    `;
+    }
+}
+
+function DisplayRoverImage(image, index) {
     return `
         <div id="slide-${index + 1}">
             <figure>
-              <img src="${src}" />
-              <figcaption>${date}</figcaption>
+              <img src="${image.get('src')}" />
+              <figcaption>${image.get('date')}</figcaption>
             </figure>
         </div>
     `;
@@ -114,18 +136,19 @@ function displayRoverImage({src, date}, index) {
 // ------------------------------------------------------  API CALLS
 
 const getRoverInformation = (state) => {
-    let {chosenRover} = state;
+    const chosenRover = state.get('chosenRover');
 
     fetch(`http://localhost:3000/rover/${chosenRover}`)
         .then((res) => res.json())
-        .then((rover) => {
-            const roverImages = rover.photos.map((image) => {
+        .then((response) => {
+            const roverImages = response.latest_photos.map((image) => {
                 return {
                     src: image.img_src,
                     date: image.earth_date,
                 };
             });
-            const roverInformation = rover.photos.find(Boolean).rover;
-            updateStore(store, { roverImages, roverInformation });
+
+            const roverInformation = response.latest_photos.find(Boolean).rover;
+            updateStore(state, {roverImages, roverInformation})
         });
 };
