@@ -100,7 +100,8 @@ function Slider(roverImagesLimit, roverImages) {
                 ${imgStructure.join('')}
             </div>
                 <div class="slider-nav">
-                ${imgLinks.join('')}
+                    ${imgLinks.join('')}
+                </div>
             </div>
         </div>
     `;
