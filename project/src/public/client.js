@@ -37,25 +37,16 @@ const App = (state) => {
 
 // listening for load event because page should load before any JS is called
 window.addEventListener("load", () => {
+    getRoverInformation(store, store.get('chosenRover'));
     render(root, store);
 });
 
 // ------------------------------------------------------  COMPONENTS
 
 const Navigation = (state) => {
-    const chosenRover = state.get('chosenRover');
-
-    document.body.addEventListener('click', (event) => {
-        event.preventDefault();
-        const rover = event.target.dataset?.load;
-        if (rover !== chosenRover) {
-            if (chosenRover) updateStore(state, {chosenRover: rover});
-        }
-    });
-
     return () => {
         return state.get('rovers').map(rover => {
-            return `<button data-load="${rover}">${rover}</button>`;
+            return `<button onClick="getRoverInformation(store, '${rover}')">${rover}</button>`;
         }).join('');
     }
 };
@@ -63,14 +54,8 @@ const Navigation = (state) => {
 const DisplayRoverInfo = (state) => {
     const roverImages = state.get('roverImages');
     const roverInformation = state.get('roverInformation');
-    const chosenRover = state.get('chosenRover');
 
     return () => {
-        // if state has not current rover informations, fetch them
-        if (!roverInformation.get('name') || chosenRover !== roverInformation.get('name')) {
-            getRoverInformation(store);
-        }
-
         return `
             <div>
                 ${Slider(5, roverImages)()}
@@ -106,7 +91,7 @@ function Slider(roverImagesLimit, roverImages) {
     const imageLinks = new Array(roverImagesLimit);
 
     return function() {
-        const imgStructure = images.map((image, index) => DisplayRoverImage(image, index));
+        const imgStructure = images.map(({src, date}, index) => DisplayRoverImage({src, date}, index));
         const imgLinks = imageLinks.map(number => `<a href="#slide-${number}">${number}</a>`);
 
         return `
@@ -122,12 +107,12 @@ function Slider(roverImagesLimit, roverImages) {
     }
 }
 
-function DisplayRoverImage(image, index) {
+function DisplayRoverImage({src, date}, index) {
     return `
         <div id="slide-${index + 1}">
             <figure>
-              <img src="${image.get('src')}" />
-              <figcaption>${image.get('date')}</figcaption>
+              <img src="${src}" />
+              <figcaption>${date}</figcaption>
             </figure>
         </div>
     `;
@@ -135,13 +120,11 @@ function DisplayRoverImage(image, index) {
 
 // ------------------------------------------------------  API CALLS
 
-const getRoverInformation = (state) => {
-    const chosenRover = state.get('chosenRover');
-
-    fetch(`http://localhost:3000/rover/${chosenRover}`)
+const getRoverInformation = (state, rover) => {
+    fetch(`http://localhost:3000/rover/${rover}`)
         .then((res) => res.json())
         .then((response) => {
-            const roverImages = response.latest_photos.map((image) => {
+            const roverImages = response.latest_photos.map(image => {
                 return {
                     src: image.img_src,
                     date: image.earth_date,
@@ -149,6 +132,11 @@ const getRoverInformation = (state) => {
             });
 
             const roverInformation = response.latest_photos.find(Boolean).rover;
-            updateStore(state, {roverImages, roverInformation})
+
+            updateStore(state, {
+                chosenRover: rover,
+                roverImages: Immutable.List(roverImages),
+                roverInformation: Immutable.Map(roverInformation)
+            })
         });
 };
