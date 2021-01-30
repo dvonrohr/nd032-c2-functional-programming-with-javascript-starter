@@ -43,6 +43,7 @@ window.addEventListener("load", () => {
 
 // ------------------------------------------------------  COMPONENTS
 
+// high order function
 const Navigation = (state) => {
     return () => {
         return state.get('rovers').map(rover => {
@@ -51,6 +52,7 @@ const Navigation = (state) => {
     }
 };
 
+// high order function
 const DisplayRoverInfo = (state) => {
     const roverImages = state.get('roverImages');
     const roverInformation = state.get('roverInformation');
