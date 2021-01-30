@@ -57,10 +57,9 @@ const DisplayRoverInfo = (state) => {
 
     return () => {
         return `
-            <div>
-                ${Slider(5, roverImages)()}
-                <div class="card">
-                    <div class="card-heading">
+            ${Slider(5, roverImages)()}
+            <div class="card">
+                <div class="card-heading">
                     <h2>${roverInformation.get('name')}</h2>
                     <p>Details about the rover.</p>
                 </div>
@@ -72,7 +71,7 @@ const DisplayRoverInfo = (state) => {
                         </div>
                         <div class="dl-section">
                             <dt>Launch date</dt>
-                            <dd>${roverInformation.get('launch_date')}</dd>                    
+                            <dd>${roverInformation.get('launch_date')}</dd>
                         </div>
                         <div class="dl-section">
                             <dt>Status</dt>
@@ -81,27 +80,26 @@ const DisplayRoverInfo = (state) => {
                     </dl>
                 </div>
             </div>
-        </div>
-    `;
+        `;
     }
 }
 
 function Slider(roverImagesLimit, roverImages) {
-    const images = roverImages.slice(0, roverImagesLimit);
-    const imageLinks = new Array(roverImagesLimit);
+    const limit = roverImages.size < roverImagesLimit ? roverImages.size : roverImagesLimit;
+    const images = roverImages.slice(0, limit);
+    const imageLinks = new Array(limit).fill(0);
 
     return function() {
         const imgStructure = images.map(({src, date}, index) => DisplayRoverImage({src, date}, index));
-        const imgLinks = imageLinks.map(number => `<a href="#slide-${number}">${number}</a>`);
+        const imgLinks = imageLinks.map((item, index) => `<a href="#slide-${index + 1}">${index + 1}</a>`);
 
         return `
         <div class="slider">
             <div class="slides">
                 ${imgStructure.join('')}
             </div>
-                <div class="slider-nav">
-                    ${imgLinks.join('')}
-                </div>
+            <div class="slider-nav">
+                ${imgLinks.join('')}
             </div>
         </div>
     `;
@@ -112,8 +110,8 @@ function DisplayRoverImage({src, date}, index) {
     return `
         <div id="slide-${index + 1}">
             <figure>
-              <img src="${src}" />
-              <figcaption>${date}</figcaption>
+                <img src="${src}" />
+                <figcaption>${date}</figcaption>
             </figure>
         </div>
     `;
